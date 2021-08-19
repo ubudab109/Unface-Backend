@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Product;
 
 use App\Http\Controllers\BaseController;
+use App\Models\ProductColorCollection;
 use App\Repositories\Core\Product\ProductInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -88,7 +89,7 @@ class ProductController extends BaseController
                     'stock' => $input['collection'][$key]['stock'],
                     'price' => $input['collection'][$key]['price'],
                 ];
-                $sizeData = $product->SizeCollection()->create($sizeData);
+                $sizeData = $product->sizeCollection()->create($sizeData);
                 foreach ($input['collection'][$key]['color'] as $index => $value) {
                     $colorData = [
                         'color_id' => $input['collection'][$key]['color'][$index]['color_id'],
@@ -118,7 +119,7 @@ class ProductController extends BaseController
 
             $response = $data;
             $response['material'] = $data->material()->select('id', 'name')->first();
-            $response['collection'] = $data->SizeCollection()->with('size:id,name,size')->with('productColor.color:id,name,hex_color')->get();
+            $response['collection'] = $data->sizeCollection()->with('size:id,name,size')->with('productColor.color:id,name,hex_color')->get();
             $response['img'] = $data->model()->select('id', 'model_id', 'model_type', 'src')->get();
 
             return $this->sendResponse($response, 'Data Fetched Successfully');
@@ -179,21 +180,24 @@ class ProductController extends BaseController
     }
 
 
-    public function getSizeCollection($id)
+    /**
+     * Get Collection Product
+     * @param $id \App\Models\ProductSizeCollection
+     * @return \Illuminate\Http\Response
+     */
+    public function getsizeCollection($id)
     {
         try {
-            $product = $this->product->getProduct($id);
-            $data = $product->SizeCollection()->with('size:id,name,size')->with('productColor.color:id,name,hex_color')->get();
+            $data = $this->product->getAllCollection($id);
             return $this->sendResponse($data, 'Data Fetched Succesfully');
-        } catch (Throwable $th) {
-            return $this->sendError('Not Found', $th);
+        } catch (\Exception $err) {
+            return $this->sendError('Not Found', $err->getMessage());
         }
     }
 
     public function updateCollection(Request $request, $id)
     {
         $validate = Validator::make($request->all(), [
-            'id' => ['required', 'integer'],
             'stock' => ['required', 'numeric'],
             'price' => ['required', 'numeric'],
             'color[*]' => ['array'],
@@ -205,18 +209,17 @@ class ProductController extends BaseController
 
         $input = $request->all();
 
-        $product = $this->product->getProduct($id);
-
-        $size = $product->SizeCollection()->where('id', $request->id)->first();
+        $size = $this->product->getCollectionSize($id);
         $size->update($input);
 
+        
         if ($request->color) {
             foreach ($input['color'] as $index => $value) {
-                $color = $size->productColor()->where('id', $input['color'][$index]['id'])->first();
-                $color->updateOrCreate(
+               ProductColorCollection::updateOrCreate(
                     ['id' => $input['color'][$index]['id']],
                     [
-                        'color_id' => $input['color'][$index]['id'] || $input['color'][$index]['id'] !== null ? $color->color_id : $input['color'][$index]['color_id'],
+                        'product_size_id'  => $id,
+                        'color_id' => $input['color'][$index]['color_id'],
                         'stock' => $input['color'][$index]['stock'],
                     ],
                 );

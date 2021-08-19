@@ -15,4 +15,8 @@ interface ProductInterface
     public function getProductTrashed($id);
 
     public function createProduct(array $data);
+
+    public function getCollectionSize($id);
+    
+    public function getAllCollection($id);
 }

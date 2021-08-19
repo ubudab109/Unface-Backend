@@ -31,7 +31,7 @@ class Product extends Model
         return $this->morphMany(MediaImage::class, 'model');
     }
 
-    public function SizeCollection()
+    public function sizeCollection()
     {
         return $this->hasMany(ProductSizeCollection::class, 'product_id', 'id');
     }

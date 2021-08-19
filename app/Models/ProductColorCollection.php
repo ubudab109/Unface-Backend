@@ -13,7 +13,7 @@ class ProductColorCollection extends Model
     protected $table = 'product_color_collection';
     protected $fillable = ['product_size_id', 'color_id', 'stock'];
     protected $primaryKey = 'id';
-    protected $hidden = ['product_size_id', 'color_id', 'created_at', 'updated_at', 'deleted_at'];
+    protected $hidden = ['product_size_id', 'created_at', 'updated_at', 'deleted_at'];
 
     public function color()
     {

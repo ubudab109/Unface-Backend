@@ -3,6 +3,7 @@
 namespace App\Repositories\Core\Product;
 
 use App\Models\Product;
+use App\Models\ProductSizeCollection;
 use App\Repositories\BaseRepository;
 
 class ProductRepository extends BaseRepository implements ProductInterface
@@ -10,11 +11,12 @@ class ProductRepository extends BaseRepository implements ProductInterface
     /**
      * @var ModelName
      */
-    protected $model;
+    protected $model, $collection;
 
-    public function __construct(Product $model)
+    public function __construct(Product $model, ProductSizeCollection $collection)
     {
         $this->model = $model;
+        $this->collection = $collection;
     }
 
     public function getAll($keyword = null, $catalogue = null, $subCategory = null, $category = null, $minPrice = null, $maxPrice = null)
@@ -89,5 +91,15 @@ class ProductRepository extends BaseRepository implements ProductInterface
     public function createProduct(array $data)
     {
         return $this->model->create($data);
+    }
+
+    public function getCollectionSize($id)
+    {
+        return $this->collection->find($id);
+    }
+
+    public function getAllCollection($id)
+    {
+        return $this->collection->with('size:id,name')->with('productColor.color:id,name,hex_color')->find($id);
     }
 }
